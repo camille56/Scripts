@@ -30,7 +30,9 @@ final class TransactionKrakenController extends AbstractController
                 $premiereTransaction=null;
                 $derniereTransaction=null;
                 $totalInvesti = 0;
+                $nombreTransationInvestissement=0;
                 $totalVendu = 0;
+                $nombreTransationDesinvestissement=0;
                 $benefice = 0;
 
 
@@ -47,13 +49,13 @@ final class TransactionKrakenController extends AbstractController
                         /**
                          * Information Sur le fichier CSV de Kraken
                          * $data[0]→ "txid" ID unique de la transaction
-                         * $data[2]→ "pair" paire consituant la transaction. Ex : SOL/USDT
+                         * $data[2]→ "pair" paire consituant la transaction. Ex : SOL/USDT. le premier actif est acheté/vendu, le second est utilisé pour le réglement.
                          * $data[3]→ "time" heure UTC
                          * $data[4]→ "type" type de transaction : Sell / Buy
-                         * $data[6]→ "price" prix de la monnaie achetée
-                         * $data[7]→ "cost" cout de la monnaie vendue
+                         * $data[6]→ "price" Le prix unitaire de l’actif lors de la transaction. Ex : 96118.80 est le prix d'un BTC.
+                         * $data[7]→ "cost" C'est le montant total dépensé ou reçu pour la transaction. Cost = volume X price
                          * $data[8]→ "fee" cout de la transaction
-                         * $data[9]→ "vol" volume de transaction
+                         * $data[9]→ "vol" volume, Le nombre d'unités échangées de l'actif principal (le premier actif de la paire)
                          */
 
                         $IdTransaction=$data[0];
@@ -70,10 +72,19 @@ final class TransactionKrakenController extends AbstractController
 
 
                         //récupération du total investi
+                        if ( str_ends_with($data[2],"/EUR") && $data[4]=="buy"){
+                            $nombreTransationInvestissement++;
+                            $totalInvesti+=(float)$data[7];
+                        }
 
                         //récupération du total vendu
+                        if (str_ends_with($data[2],"/EUR") && $data[4]=="sell"){
+                            $nombreTransationDesinvestissement++;
+                            $totalVendu+=(float)$data[7];
+                        }
 
                         //calcul du bénéfice
+                        $benefice=$totalVendu-$totalInvesti;
 
                     }
 
